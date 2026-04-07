@@ -80,3 +80,35 @@ public class JackScanner {
         return new Token(type, lexeme);
     }
 }
+
+
+    private Token scanSymbol() {
+        Token t = new Token(getSymbolType(peek), String.valueOf(peek));
+        readch();
+        return t;
+    }
+
+    private TokenType getSymbolType(char c) {
+        return switch (c) {
+            case '(' -> TokenType.LPAREN;
+            case ')' -> TokenType.RPAREN;
+            case '{' -> TokenType.LBRACE;
+            case '}' -> TokenType.RBRACE;
+            case '[' -> TokenType.LBRACKET;
+            case ']' -> TokenType.RBRACKET;
+            case ',' -> TokenType.COMMA;
+            case ';' -> TokenType.SEMICOLON;
+            case '.' -> TokenType.DOT;
+            case '+' -> TokenType.PLUS;
+            case '-' -> TokenType.MINUS;
+            case '*' -> TokenType.ASTERISK;
+            case '&' -> TokenType.AND;
+            case '|' -> TokenType.OR;
+            case '~' -> TokenType.NOT;
+            case '<' -> TokenType.LT;
+            case '>' -> TokenType.GT;
+            case '=' -> TokenType.EQ;
+            default  -> throw new RuntimeException("Erro léxico na linha " + line + ": símbolo desconhecido '" + c + "'");
+        };
+    }
+}
