@@ -1,6 +1,6 @@
 # Projeto Compilador Jack
 
-Este repositório é dedicado ao desenvolvimento de um compilador para a linguagem *Jack*, conforme proposto na disciplina de Compiladores///////.
+Este repositório é dedicado ao desenvolvimento de um compilador para a linguagem *Jack*, conforme proposto na disciplina de Compiladores.
 
 *Curso:* Engenharia da Computação - CCET - UFMA
 *Professor:* Sergio Souza Costa
