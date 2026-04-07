@@ -1,0 +1,17 @@
+# ===== Compilação Java =====
+bin/
+*.class
+
+# ===== Arquivos temporários =====
+*.log
+*.tmp
+
+# ===== Git interno (não versionar) =====
+FETCH_HEAD
+
+# ===== Sistema operacional =====
+.DS_Store
+Thumbs.db
+
+# ===== (Opcional) caches =====
+.metadata/
