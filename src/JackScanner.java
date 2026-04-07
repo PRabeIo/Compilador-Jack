@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JackScanner {
@@ -47,7 +49,43 @@ public class JackScanner {
             peek = '\0';
         }
     }
-}
+
+    public Token scan() {
+        while (peek == ' ' || peek == '\t' || peek == '\r' || peek == '\n') {
+            readch();
+        }
+
+        if (peek == '/') {
+            readch();
+            if (peek == '/') {
+                skipLineComment();
+                return scan();
+            } else if (peek == '*') {
+                skipBlockComment();
+                return scan();
+            } else {
+                return new Token(TokenType.SLASH, "/");
+            }
+        }
+
+        if (Character.isDigit(peek)) return scanNumber();
+        if (peek == '"')             return scanString();
+        if (Character.isLetter(peek) || peek == '_') return scanIdentifier();
+        if (SYMBOL_CHARS.indexOf(peek) != -1)        return scanSymbol();
+        if (peek == '\0') return new Token(TokenType.EOF, "");
+
+        throw new RuntimeException("Erro léxico na linha " + line + ": caractere inesperado '" + peek + "'");
+    }
+
+    public List<Token> tokenize() {
+        List<Token> tokens = new ArrayList<>();
+        Token t;
+        do {
+            t = scan();
+            tokens.add(t);
+        } while (t.tag != TokenType.EOF);
+        return tokens;
+    }
 
     private Token scanNumber() {
         int v = 0;
@@ -79,8 +117,6 @@ public class JackScanner {
         TokenType type = keywords.getOrDefault(lexeme, TokenType.IDENT);
         return new Token(type, lexeme);
     }
-}
-
 
     private Token scanSymbol() {
         Token t = new Token(getSymbolType(peek), String.valueOf(peek));
@@ -110,5 +146,22 @@ public class JackScanner {
             case '=' -> TokenType.EQ;
             default  -> throw new RuntimeException("Erro léxico na linha " + line + ": símbolo desconhecido '" + c + "'");
         };
+    }
+
+    private void skipLineComment() {
+        while (peek != '\n' && peek != '\0') readch();
+    }
+
+    private void skipBlockComment() {
+        readch();
+        while (peek != '\0') {
+            if (peek == '*') {
+                readch();
+                if (peek == '/') { readch(); return; }
+            } else {
+                readch();
+            }
+        }
+        throw new RuntimeException("Erro léxico na linha " + line + ": comentário de bloco /* não fechado");
     }
 }
