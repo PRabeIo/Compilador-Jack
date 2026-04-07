@@ -48,3 +48,35 @@ public class JackScanner {
         }
     }
 }
+
+    private Token scanNumber() {
+        int v = 0;
+        do {
+            v = 10 * v + (peek - '0');
+            readch();
+        } while (Character.isDigit(peek));
+        return new Token(TokenType.NUMBER, String.valueOf(v));
+    }
+
+    private Token scanString() {
+        readch();
+        StringBuilder b = new StringBuilder();
+        while (peek != '"' && peek != '\0') {
+            b.append(peek);
+            readch();
+        }
+        readch();
+        return new Token(TokenType.STRING, b.toString());
+    }
+
+    private Token scanIdentifier() {
+        StringBuilder b = new StringBuilder();
+        do {
+            b.append(peek);
+            readch();
+        } while (Character.isLetterOrDigit(peek) || peek == '_');
+        String lexeme = b.toString();
+        TokenType type = keywords.getOrDefault(lexeme, TokenType.IDENT);
+        return new Token(type, lexeme);
+    }
+}
