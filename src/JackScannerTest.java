@@ -6,18 +6,18 @@ public class JackScannerTest {
 
     @Test
     void testNumeroBasico() {
-        JackScanner scanner = new JackScanner("289");
+        JackScanner scanner = new JackScanner("444");
         List<Token> tokens = scanner.tokenize();
-        assertEquals("<integerConstant> 289 </integerConstant>", tokens.get(0).toXML());
+        assertEquals("<integerConstant> 444 </integerConstant>", tokens.get(0).toXML());
     }
 
     @Test
     void testNumerosComXml() {
         String[][] casos = {
-            { "0",     "<integerConstant> 0 </integerConstant>"   },
-            { "289",   "<integerConstant> 289 </integerConstant>" },
-            { "42",    "<integerConstant> 42 </integerConstant>"  },
-            { " 123 ", "<integerConstant> 123 </integerConstant>" },
+            { "2",     "<integerConstant> 2 </integerConstant>"   },
+            { "444",   "<integerConstant> 444 </integerConstant>" },
+            { "46",    "<integerConstant> 46 </integerConstant>"  },
+            { " 132 ", "<integerConstant> 132 </integerConstant>" },
         };
         for (String[] caso : casos) {
             JackScanner scanner = new JackScanner(caso[0]);
@@ -28,11 +28,11 @@ public class JackScannerTest {
 
     @Test
     void testStringBasica() {
-        JackScanner scanner = new JackScanner("\"hello\"");
+        JackScanner scanner = new JackScanner("\"ola\"");
         List<Token> tokens = scanner.tokenize();
         assertEquals(TokenType.STRING, tokens.get(0).tag);
-        assertEquals("hello",          tokens.get(0).value);
-        assertEquals("<stringConstant> hello </stringConstant>", tokens.get(0).toXML());
+        assertEquals("ola",          tokens.get(0).value);
+        assertEquals("<stringConstant> ola </stringConstant>", tokens.get(0).toXML());
     }
 
     @Test
