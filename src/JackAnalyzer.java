@@ -56,7 +56,8 @@ public class JackAnalyzer {
             List<Token> tokens = scanner.tokenize();
 
             String baseName   = jackFile.getName().replace(".jack", "");
-            String outputPath = jackFile.getParent() + File.separator + baseName + "T.xml";
+            String parent     = jackFile.getParent() != null ? jackFile.getParent() : ".";
+            String outputPath = parent + File.separator + baseName + "T.xml";
 
             XMLGenerator.write(tokens, outputPath);
             System.out.println("✓ " + jackFile.getName() + " → " + baseName + "T.xml");

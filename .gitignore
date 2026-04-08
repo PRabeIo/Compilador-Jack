@@ -1,6 +1,9 @@
 # ===== Compilação Java =====
 bin/
 *.class
+.classpath
+.project
+.settings/
 
 # ===== Arquivos temporários =====
 *.log
