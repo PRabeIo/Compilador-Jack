@@ -162,7 +162,6 @@ public class CompilationEngine {
         closeTag("whileStatement");
     }
 
-    // doStatement: 'do' subroutineCall ';'
     private void compileDo() {
         openTag("doStatement");
         consume("do");
@@ -171,7 +170,6 @@ public class CompilationEngine {
         closeTag("doStatement");
     }
 
-    // returnStatement: 'return' expression? ';'
     private void compileReturn() {
         openTag("returnStatement");
         consume("return");
@@ -180,7 +178,6 @@ public class CompilationEngine {
         closeTag("returnStatement");
     }
 
-    // subroutineCall — placeholder até commit 14
     private void compileSubroutineCall() {
         consumeType("identifier");
         if (match(".")) { consume("."); consumeType("identifier"); }
@@ -190,12 +187,48 @@ public class CompilationEngine {
         consume(")");
     }
 
-    // expression — placeholder até commit 13
+    // expression: term (op term)*
     private void compileExpression() {
         openTag("expression");
-        openTag("term");
-        writeToken(advance());
-        closeTag("term");
+        compileTerm();
+        while (isOp()) { writeToken(advance()); compileTerm(); }
         closeTag("expression");
+    }
+
+    private boolean isOp() {
+        if (cursor >= tokens.size()) return false;
+        Token t = peek();
+        return t.tag.getXmlTag().equals("symbol") && "+-*/&|<>=".contains(t.value);
+    }
+
+    // term: integerConstant | stringConstant | keywordConstant | varName
+    //     | varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
+    private void compileTerm() {
+        openTag("term");
+        Token t = peek();
+        String xmlTag = t.tag.getXmlTag();
+
+        if (xmlTag.equals("integerConstant") || xmlTag.equals("stringConstant")) {
+            writeToken(advance());
+        } else if (t.value.equals("true") || t.value.equals("false")
+                || t.value.equals("null") || t.value.equals("this")) {
+            writeToken(advance());
+        } else if (t.value.equals("(")) {
+            consume("("); compileExpression(); consume(")");
+        } else if (t.value.equals("-") || t.value.equals("~")) {
+            writeToken(advance()); compileTerm();
+        } else if (xmlTag.equals("identifier")) {
+            Token next = peekNext();
+            if (next != null && next.value.equals("[")) {
+                consumeType("identifier"); consume("["); compileExpression(); consume("]");
+            } else if (next != null && (next.value.equals("(") || next.value.equals("."))) {
+                compileSubroutineCall();
+            } else {
+                consumeType("identifier");
+            }
+        } else {
+            throw new RuntimeException("Erro sintático em term: token inesperado '" + t.value + "' — token #" + cursor);
+        }
+        closeTag("term");
     }
 }
