@@ -121,21 +121,19 @@ public class CompilationEngine {
         closeTag("varDec");
     }
 
-    // statements: statement*
     private void compileStatements() {
         openTag("statements");
         while (true) {
             if      (match("let"))    compileLet();
-            else if (match("if"))     break; // if/while/do/return — próximo commit
-            else if (match("while"))  break;
-            else if (match("do"))     break;
+            else if (match("if"))     compileIf();
+            else if (match("while"))  compileWhile();
+            else if (match("do"))     break; // do/return — próximo commit
             else if (match("return")) break;
             else break;
         }
         closeTag("statements");
     }
 
-    // letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
     private void compileLet() {
         openTag("letStatement");
         consume("let");
@@ -145,6 +143,38 @@ public class CompilationEngine {
         compileExpression();
         consume(";");
         closeTag("letStatement");
+    }
+
+    // ifStatement: 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
+    private void compileIf() {
+        openTag("ifStatement");
+        consume("if");
+        consume("(");
+        compileExpression();
+        consume(")");
+        consume("{");
+        compileStatements();
+        consume("}");
+        if (match("else")) {
+            consume("else");
+            consume("{");
+            compileStatements();
+            consume("}");
+        }
+        closeTag("ifStatement");
+    }
+
+    // whileStatement: 'while' '(' expression ')' '{' statements '}'
+    private void compileWhile() {
+        openTag("whileStatement");
+        consume("while");
+        consume("(");
+        compileExpression();
+        consume(")");
+        consume("{");
+        compileStatements();
+        consume("}");
+        closeTag("whileStatement");
     }
 
     // expression — placeholder até o commit 13
