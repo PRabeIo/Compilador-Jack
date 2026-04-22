@@ -3,7 +3,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class JackScannerTest {
 
@@ -15,6 +19,32 @@ public class JackScannerTest {
     static void criarDiretorioSaida() {
         new File(OUTPUT_DIR).mkdirs();
     }
+
+    // -------------------------------------------------------------------------
+    // Utilitários
+    // -------------------------------------------------------------------------
+
+    private String normalizeXml(String content) {
+        return content.lines()
+                .map(String::stripLeading)
+                .filter(line -> !line.isBlank())
+                .collect(Collectors.joining("\n"));
+    }
+
+    private void runScanner(String inputFile, String outputFile) throws Exception {
+        String source = Files.readString(Paths.get(inputFile));
+        JackScanner scanner = new JackScanner(source);
+        List<Token> tokens  = scanner.tokenize();
+        XMLGenerator.write(tokens, outputFile);
+    }
+
+    private String readNormalized(String path) throws IOException {
+        return normalizeXml(Files.readString(Paths.get(path)));
+    }
+
+    // -------------------------------------------------------------------------
+    // Testes unitários (strings em memória)
+    // -------------------------------------------------------------------------
 
     @Test
     void testNumeroBasico() {
