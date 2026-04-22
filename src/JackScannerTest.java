@@ -1,8 +1,20 @@
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.File;
 import java.util.List;
 
 public class JackScannerTest {
+
+    private static final String INPUT_DIR    = "tests/Scanner";
+    private static final String EXPECTED_DIR = "tests/expected";
+    private static final String OUTPUT_DIR   = "tests/output";
+
+    @BeforeAll
+    static void criarDiretorioSaida() {
+        new File(OUTPUT_DIR).mkdirs();
+    }
 
     @Test
     void testNumeroBasico() {
@@ -31,7 +43,7 @@ public class JackScannerTest {
         JackScanner scanner = new JackScanner("\"ola\"");
         List<Token> tokens = scanner.tokenize();
         assertEquals(TokenType.STRING, tokens.get(0).tag);
-        assertEquals("ola",          tokens.get(0).value);
+        assertEquals("ola",           tokens.get(0).value);
         assertEquals("<stringConstant> ola </stringConstant>", tokens.get(0).toXML());
     }
 
@@ -173,18 +185,18 @@ public class JackScannerTest {
         String code = "if (x < 0) { let sign = \"negative\"; }";
         JackScanner scanner = new JackScanner(code);
         List<Token> tokens = scanner.tokenize().stream().filter(t -> t.tag != TokenType.EOF).toList();
-        assertEquals("<keyword> if </keyword>",                     tokens.get(0).toXML());
-        assertEquals("<symbol> ( </symbol>",                        tokens.get(1).toXML());
-        assertEquals("<identifier> x </identifier>",               tokens.get(2).toXML());
-        assertEquals("<symbol> &lt; </symbol>",                     tokens.get(3).toXML());
-        assertEquals("<integerConstant> 0 </integerConstant>",     tokens.get(4).toXML());
-        assertEquals("<symbol> ) </symbol>",                        tokens.get(5).toXML());
-        assertEquals("<symbol> { </symbol>",                        tokens.get(6).toXML());
-        assertEquals("<keyword> let </keyword>",                    tokens.get(7).toXML());
-        assertEquals("<identifier> sign </identifier>",            tokens.get(8).toXML());
-        assertEquals("<symbol> = </symbol>",                        tokens.get(9).toXML());
-        assertEquals("<stringConstant> negative </stringConstant>", tokens.get(10).toXML());
-        assertEquals("<symbol> ; </symbol>",                        tokens.get(11).toXML());
-        assertEquals("<symbol> } </symbol>",                        tokens.get(12).toXML());
+        assertEquals("<keyword> if </keyword>",                      tokens.get(0).toXML());
+        assertEquals("<symbol> ( </symbol>",                         tokens.get(1).toXML());
+        assertEquals("<identifier> x </identifier>",                tokens.get(2).toXML());
+        assertEquals("<symbol> &lt; </symbol>",                      tokens.get(3).toXML());
+        assertEquals("<integerConstant> 0 </integerConstant>",      tokens.get(4).toXML());
+        assertEquals("<symbol> ) </symbol>",                         tokens.get(5).toXML());
+        assertEquals("<symbol> { </symbol>",                         tokens.get(6).toXML());
+        assertEquals("<keyword> let </keyword>",                     tokens.get(7).toXML());
+        assertEquals("<identifier> sign </identifier>",             tokens.get(8).toXML());
+        assertEquals("<symbol> = </symbol>",                         tokens.get(9).toXML());
+        assertEquals("<stringConstant> negative </stringConstant>",  tokens.get(10).toXML());
+        assertEquals("<symbol> ; </symbol>",                         tokens.get(11).toXML());
+        assertEquals("<symbol> } </symbol>",                         tokens.get(12).toXML());
     }
 }
