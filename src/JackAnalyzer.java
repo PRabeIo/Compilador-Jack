@@ -4,8 +4,6 @@ import java.util.*;
 
 public class JackAnalyzer {
 
-    private static final String OUTPUT_DIR = "tests/output";
-
     public static void main(String[] args) throws Exception {
 
         System.out.println("Diretório atual: " + new File(".").getAbsolutePath());
@@ -13,7 +11,7 @@ public class JackAnalyzer {
         if (args.length < 1) {
             System.out.println("Nenhum argumento informado.");
             System.out.println("Uso: JackAnalyzer <arquivo.jack | diretório>");
-            System.out.println("Exemplo de argumento: tests/Scanner");
+            System.out.println("Exemplo de argumento: tests/Square");
             System.exit(1);
         }
 
@@ -50,19 +48,29 @@ public class JackAnalyzer {
         }
     }
 
+    private static final String OUTPUT_DIR = "tests/output";
+
     private static void processFile(File jackFile) {
         try {
             String source   = Files.readString(jackFile.toPath());
             String baseName = jackFile.getName().replace(".jack", "");
 
+            // Garante que a pasta tests/output/ existe
             new File(OUTPUT_DIR).mkdirs();
 
+            // ── Etapa 1: Scanner → gera XxxT.xml em tests/output/ ────────
             JackScanner scanner = new JackScanner(source);
             List<Token> tokens  = scanner.tokenize();
 
             String tokenizerOutput = OUTPUT_DIR + File.separator + baseName + "T.xml";
             XMLGenerator.write(tokens, tokenizerOutput);
             System.out.println("✓ [Scanner] " + jackFile.getName() + " → output/" + baseName + "T.xml");
+
+            // ── Etapa 2: Parser → gera XxxP.xml em tests/output/ ─────────
+            String parserOutput = OUTPUT_DIR + File.separator + baseName + "P.xml";
+            CompilationEngine engine = new CompilationEngine(tokens, parserOutput);
+            engine.compileClass();
+            System.out.println("✓ [Parser]  " + jackFile.getName() + " → output/" + baseName + "P.xml");
 
         } catch (IOException e) {
             System.err.println("✗ Erro de I/O: " + e.getMessage());
