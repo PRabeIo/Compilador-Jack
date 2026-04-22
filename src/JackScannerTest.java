@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,6 +19,11 @@ public class JackScannerTest {
     @BeforeAll
     static void criarDiretorioSaida() {
         new File(OUTPUT_DIR).mkdirs();
+    }
+
+    @AfterEach
+    void limparArquivosTemporarios() {
+        // Nenhum arquivo temporário gerado pelos testes unitários — nada a limpar
     }
 
     // -------------------------------------------------------------------------
@@ -228,5 +234,51 @@ public class JackScannerTest {
         assertEquals("<stringConstant> negative </stringConstant>",  tokens.get(10).toXML());
         assertEquals("<symbol> ; </symbol>",                         tokens.get(11).toXML());
         assertEquals("<symbol> } </symbol>",                         tokens.get(12).toXML());
+    }
+
+    // -------------------------------------------------------------------------
+    // Testes de validação contra arquivos oficiais do nand2tetris
+    // -------------------------------------------------------------------------
+
+    @Test
+    void testMainScannerContraOficial() throws Exception {
+        String output   = OUTPUT_DIR   + "/MainT.xml";
+        String expected = EXPECTED_DIR + "/MainT.xml";
+
+        runScanner(INPUT_DIR + "/Main.jack", output);
+
+        assertTrue(new File(expected).exists(),
+                "Arquivo esperado não encontrado: " + expected);
+
+        assertEquals(readNormalized(expected), readNormalized(output),
+                "Saída do scanner para Main.jack não corresponde ao arquivo oficial.");
+    }
+
+    @Test
+    void testSquareScannerContraOficial() throws Exception {
+        String output   = OUTPUT_DIR   + "/SquareT.xml";
+        String expected = EXPECTED_DIR + "/SquareT.xml";
+
+        runScanner(INPUT_DIR + "/Square.jack", output);
+
+        assertTrue(new File(expected).exists(),
+                "Arquivo esperado não encontrado: " + expected);
+
+        assertEquals(readNormalized(expected), readNormalized(output),
+                "Saída do scanner para Square.jack não corresponde ao arquivo oficial.");
+    }
+
+    @Test
+    void testSquareGameScannerContraOficial() throws Exception {
+        String output   = OUTPUT_DIR   + "/SquareGameT.xml";
+        String expected = EXPECTED_DIR + "/SquareGameT.xml";
+
+        runScanner(INPUT_DIR + "/SquareGame.jack", output);
+
+        assertTrue(new File(expected).exists(),
+                "Arquivo esperado não encontrado: " + expected);
+
+        assertEquals(readNormalized(expected), readNormalized(output),
+                "Saída do scanner para SquareGame.jack não corresponde ao arquivo oficial.");
     }
 }
