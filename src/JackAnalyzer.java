@@ -4,6 +4,8 @@ import java.util.*;
 
 public class JackAnalyzer {
 
+    private static final String OUTPUT_DIR = "tests/output";
+
     public static void main(String[] args) throws Exception {
 
         System.out.println("Diretório atual: " + new File(".").getAbsolutePath());
@@ -11,7 +13,7 @@ public class JackAnalyzer {
         if (args.length < 1) {
             System.out.println("Nenhum argumento informado.");
             System.out.println("Uso: JackAnalyzer <arquivo.jack | diretório>");
-            System.out.println("Exemplo de argumento: tests");
+            System.out.println("Exemplo de argumento: tests/Scanner");
             System.exit(1);
         }
 
@@ -50,20 +52,22 @@ public class JackAnalyzer {
 
     private static void processFile(File jackFile) {
         try {
-            String source = Files.readString(jackFile.toPath());
+            String source   = Files.readString(jackFile.toPath());
+            String baseName = jackFile.getName().replace(".jack", "");
+
+            new File(OUTPUT_DIR).mkdirs();
 
             JackScanner scanner = new JackScanner(source);
-            List<Token> tokens = scanner.tokenize();
+            List<Token> tokens  = scanner.tokenize();
 
-            String baseName   = jackFile.getName().replace(".jack", "");
-            String parent     = jackFile.getParent() != null ? jackFile.getParent() : ".";
-            String outputPath = parent + File.separator + baseName + "T.xml";
-
-            XMLGenerator.write(tokens, outputPath);
-            System.out.println("✓ " + jackFile.getName() + " → " + baseName + "T.xml");
+            String tokenizerOutput = OUTPUT_DIR + File.separator + baseName + "T.xml";
+            XMLGenerator.write(tokens, tokenizerOutput);
+            System.out.println("✓ [Scanner] " + jackFile.getName() + " → output/" + baseName + "T.xml");
 
         } catch (IOException e) {
-            System.err.println("✗ Erro: " + e.getMessage());
+            System.err.println("✗ Erro de I/O: " + e.getMessage());
+        } catch (RuntimeException e) {
+            System.err.println("✗ Erro de análise: " + e.getMessage());
         }
     }
 }
