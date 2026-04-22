@@ -127,8 +127,8 @@ public class CompilationEngine {
             if      (match("let"))    compileLet();
             else if (match("if"))     compileIf();
             else if (match("while"))  compileWhile();
-            else if (match("do"))     break; // do/return — próximo commit
-            else if (match("return")) break;
+            else if (match("do"))     compileDo();
+            else if (match("return")) compileReturn();
             else break;
         }
         closeTag("statements");
@@ -145,39 +145,52 @@ public class CompilationEngine {
         closeTag("letStatement");
     }
 
-    // ifStatement: 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
     private void compileIf() {
         openTag("ifStatement");
         consume("if");
-        consume("(");
-        compileExpression();
-        consume(")");
-        consume("{");
-        compileStatements();
-        consume("}");
-        if (match("else")) {
-            consume("else");
-            consume("{");
-            compileStatements();
-            consume("}");
-        }
+        consume("("); compileExpression(); consume(")");
+        consume("{"); compileStatements(); consume("}");
+        if (match("else")) { consume("else"); consume("{"); compileStatements(); consume("}"); }
         closeTag("ifStatement");
     }
 
-    // whileStatement: 'while' '(' expression ')' '{' statements '}'
     private void compileWhile() {
         openTag("whileStatement");
         consume("while");
-        consume("(");
-        compileExpression();
-        consume(")");
-        consume("{");
-        compileStatements();
-        consume("}");
+        consume("("); compileExpression(); consume(")");
+        consume("{"); compileStatements(); consume("}");
         closeTag("whileStatement");
     }
 
-    // expression — placeholder até o commit 13
+    // doStatement: 'do' subroutineCall ';'
+    private void compileDo() {
+        openTag("doStatement");
+        consume("do");
+        compileSubroutineCall();
+        consume(";");
+        closeTag("doStatement");
+    }
+
+    // returnStatement: 'return' expression? ';'
+    private void compileReturn() {
+        openTag("returnStatement");
+        consume("return");
+        if (!match(";")) compileExpression();
+        consume(";");
+        closeTag("returnStatement");
+    }
+
+    // subroutineCall — placeholder até commit 14
+    private void compileSubroutineCall() {
+        consumeType("identifier");
+        if (match(".")) { consume("."); consumeType("identifier"); }
+        consume("(");
+        openTag("expressionList");
+        closeTag("expressionList");
+        consume(")");
+    }
+
+    // expression — placeholder até commit 13
     private void compileExpression() {
         openTag("expression");
         openTag("term");
