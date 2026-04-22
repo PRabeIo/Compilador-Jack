@@ -2,10 +2,6 @@ import java.io.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Analisador sintático da linguagem Jack.
- * Implementa recursive descent parsing — uma função por não-terminal da gramática.
- */
 public class CompilationEngine {
 
     private final List<Token> tokens;
@@ -22,13 +18,8 @@ public class CompilationEngine {
                 new OutputStreamWriter(new FileOutputStream(outputPath), "UTF-8")));
     }
 
-    // =========================================================================
-    // Métodos auxiliares de navegação
-    // =========================================================================
-
     private Token peek() {
-        if (cursor >= tokens.size())
-            throw new RuntimeException("Fim inesperado de tokens.");
+        if (cursor >= tokens.size()) throw new RuntimeException("Fim inesperado de tokens.");
         return tokens.get(cursor);
     }
 
@@ -37,75 +28,104 @@ public class CompilationEngine {
         return tokens.get(cursor + 1);
     }
 
-    private Token advance() {
-        Token t = peek();
-        cursor++;
-        return t;
-    }
-
-    private boolean match(String value) {
-        return cursor < tokens.size() && peek().value.equals(value);
-    }
-
-    private boolean matchType(String xmlTag) {
-        return cursor < tokens.size() && peek().tag.getXmlTag().equals(xmlTag);
-    }
+    private Token advance() { Token t = peek(); cursor++; return t; }
+    private boolean match(String value) { return cursor < tokens.size() && peek().value.equals(value); }
+    private boolean matchType(String xmlTag) { return cursor < tokens.size() && peek().tag.getXmlTag().equals(xmlTag); }
 
     private void consume(String expectedValue) {
         Token t = advance();
-        if (!t.value.equals(expectedValue)) {
-            throw new RuntimeException(
-                "Erro sintático: esperado '" + expectedValue +
-                "', encontrado '" + t.value + "' (tipo: " + t.tag.getXmlTag() + ")" +
-                " — token #" + cursor);
-        }
+        if (!t.value.equals(expectedValue))
+            throw new RuntimeException("Erro sintático: esperado '" + expectedValue + "', encontrado '" + t.value + "' — token #" + cursor);
         writeToken(t);
     }
 
     private void consumeType(String expectedXmlTag) {
         Token t = advance();
-        if (!t.tag.getXmlTag().equals(expectedXmlTag)) {
-            throw new RuntimeException(
-                "Erro sintático: esperado tipo '" + expectedXmlTag +
-                "', encontrado '" + t.value + "' (tipo: " + t.tag.getXmlTag() + ")" +
-                " — token #" + cursor);
-        }
+        if (!t.tag.getXmlTag().equals(expectedXmlTag))
+            throw new RuntimeException("Erro sintático: esperado tipo '" + expectedXmlTag + "', encontrado '" + t.value + "' — token #" + cursor);
         writeToken(t);
     }
 
-    // =========================================================================
-    // Métodos auxiliares de escrita XML
-    // =========================================================================
-
-    private void writeToken(Token t) {
-        writeLine(t.toXML());
-    }
-
-    private void openTag(String tag) {
-        writeLine("<" + tag + ">");
-        indentLevel += INDENT_SIZE;
-    }
-
-    private void closeTag(String tag) {
-        indentLevel -= INDENT_SIZE;
-        writeLine("</" + tag + ">");
-    }
-
-    private void writeLine(String content) {
-        writer.println(" ".repeat(indentLevel) + content);
-    }
-
-    private void close() {
-        writer.flush();
-        writer.close();
-    }
-
-    // =========================================================================
-    // Regras da gramática Jack (a implementar nos próximos commits)
-    // =========================================================================
+    private void writeToken(Token t) { writeLine(t.toXML()); }
+    private void openTag(String tag) { writeLine("<" + tag + ">"); indentLevel += INDENT_SIZE; }
+    private void closeTag(String tag) { indentLevel -= INDENT_SIZE; writeLine("</" + tag + ">"); }
+    private void writeLine(String content) { writer.println(" ".repeat(indentLevel) + content); }
+    private void close() { writer.flush(); writer.close(); }
 
     public void compileClass() {
-        // TODO
+        openTag("class");
+        consume("class");
+        consumeType("identifier");
+        consume("{");
+        while (match("static") || match("field")) compileClassVarDec();
+        while (match("constructor") || match("function") || match("method")) compileSubroutine();
+        consume("}");
+        closeTag("class");
         close();
+    }
+
+    private void compileClassVarDec() {
+        openTag("classVarDec");
+        writeToken(advance());
+        compileType();
+        consumeType("identifier");
+        while (match(",")) { consume(","); consumeType("identifier"); }
+        consume(";");
+        closeTag("classVarDec");
+    }
+
+    private void compileType() {
+        Token t = peek();
+        if (t.value.equals("int") || t.value.equals("char") || t.value.equals("boolean")
+                || t.tag.getXmlTag().equals("identifier")) {
+            writeToken(advance());
+        } else {
+            throw new RuntimeException("Erro sintático: tipo esperado, encontrado '" + t.value + "'");
+        }
+    }
+
+    // subroutineDec: ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
+    private void compileSubroutine() {
+        openTag("subroutineDec");
+        writeToken(advance());   // constructor | function | method
+        if (match("void")) writeToken(advance()); else compileType();
+        consumeType("identifier");
+        consume("(");
+        compileParameterList();
+        consume(")");
+        compileSubroutineBody();
+        closeTag("subroutineDec");
+    }
+
+    // parameterList: ((type varName) (',' type varName)*)?
+    private void compileParameterList() {
+        openTag("parameterList");
+        if (!match(")")) {
+            compileType();
+            consumeType("identifier");
+            while (match(",")) { consume(","); compileType(); consumeType("identifier"); }
+        }
+        closeTag("parameterList");
+    }
+
+    // subroutineBody: '{' varDec* statements '}'
+    private void compileSubroutineBody() {
+        openTag("subroutineBody");
+        consume("{");
+        while (match("var")) compileVarDec();
+        // statements — a implementar no próximo commit
+        consume("}");
+        closeTag("subroutineBody");
+    }
+
+    // varDec: 'var' type varName (',' varName)* ';'
+    private void compileVarDec() {
+        openTag("varDec");
+        consume("var");
+        compileType();
+        consumeType("identifier");
+        while (match(",")) { consume(","); consumeType("identifier"); }
+        consume(";");
+        closeTag("varDec");
     }
 }
