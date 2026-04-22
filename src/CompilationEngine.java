@@ -77,17 +77,13 @@ public class CompilationEngine {
     private void compileType() {
         Token t = peek();
         if (t.value.equals("int") || t.value.equals("char") || t.value.equals("boolean")
-                || t.tag.getXmlTag().equals("identifier")) {
-            writeToken(advance());
-        } else {
-            throw new RuntimeException("Erro sintático: tipo esperado, encontrado '" + t.value + "'");
-        }
+                || t.tag.getXmlTag().equals("identifier")) writeToken(advance());
+        else throw new RuntimeException("Erro sintático: tipo esperado, encontrado '" + t.value + "'");
     }
 
-    // subroutineDec: ('constructor'|'function'|'method') ('void'|type) subroutineName '(' parameterList ')' subroutineBody
     private void compileSubroutine() {
         openTag("subroutineDec");
-        writeToken(advance());   // constructor | function | method
+        writeToken(advance());
         if (match("void")) writeToken(advance()); else compileType();
         consumeType("identifier");
         consume("(");
@@ -97,28 +93,24 @@ public class CompilationEngine {
         closeTag("subroutineDec");
     }
 
-    // parameterList: ((type varName) (',' type varName)*)?
     private void compileParameterList() {
         openTag("parameterList");
         if (!match(")")) {
-            compileType();
-            consumeType("identifier");
+            compileType(); consumeType("identifier");
             while (match(",")) { consume(","); compileType(); consumeType("identifier"); }
         }
         closeTag("parameterList");
     }
 
-    // subroutineBody: '{' varDec* statements '}'
     private void compileSubroutineBody() {
         openTag("subroutineBody");
         consume("{");
         while (match("var")) compileVarDec();
-        // statements — a implementar no próximo commit
+        compileStatements();
         consume("}");
         closeTag("subroutineBody");
     }
 
-    // varDec: 'var' type varName (',' varName)* ';'
     private void compileVarDec() {
         openTag("varDec");
         consume("var");
@@ -127,5 +119,40 @@ public class CompilationEngine {
         while (match(",")) { consume(","); consumeType("identifier"); }
         consume(";");
         closeTag("varDec");
+    }
+
+    // statements: statement*
+    private void compileStatements() {
+        openTag("statements");
+        while (true) {
+            if      (match("let"))    compileLet();
+            else if (match("if"))     break; // if/while/do/return — próximo commit
+            else if (match("while"))  break;
+            else if (match("do"))     break;
+            else if (match("return")) break;
+            else break;
+        }
+        closeTag("statements");
+    }
+
+    // letStatement: 'let' varName ('[' expression ']')? '=' expression ';'
+    private void compileLet() {
+        openTag("letStatement");
+        consume("let");
+        consumeType("identifier");
+        if (match("[")) { consume("["); compileExpression(); consume("]"); }
+        consume("=");
+        compileExpression();
+        consume(";");
+        closeTag("letStatement");
+    }
+
+    // expression — placeholder até o commit 13
+    private void compileExpression() {
+        openTag("expression");
+        openTag("term");
+        writeToken(advance());
+        closeTag("term");
+        closeTag("expression");
     }
 }
